@@ -1,0 +1,754 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malware Simulator | CyberLab</title>
+
+<style>
+:root {
+    --bg: #041226;
+    --blue: #36aaff;
+    --red: #ff4d62;
+    --green: #00d49a;
+    --purple: #9b62ff;
+    --accent: #ff4d62;
+    --text: #e8f4ff;
+    --muted: #94aecb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: radial-gradient(ellipse at top, #10345e, var(--bg) 65%);
+}
+
+button { cursor: pointer; font: inherit; }
+
+.container {
+    max-width: 1250px;
+    margin: auto;
+    padding: 25px 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 35px;
+}
+
+.brand {
+    font-size: 19px;
+    font-weight: bold;
+}
+
+.badge {
+    color: #8bdcff;
+    border: 1px solid #22567c;
+    border-radius: 30px;
+    padding: 7px 12px;
+    font-size: 11px;
+}
+
+.hero {
+    text-align: center;
+    max-width: 750px;
+    margin: 30px auto;
+}
+
+.eyebrow {
+    color: #59c5ff;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+h1 {
+    font-size: clamp(32px, 5vw, 50px);
+    margin: 12px 0;
+}
+
+.hero p, .card p {
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.safe {
+    color: #8fe8c9;
+    font-size: 13px;
+    margin-top: 18px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.card {
+    --c: var(--red);
+    background: linear-gradient(145deg, #122039, #071629);
+    border: 1px solid var(--c);
+    border-radius: 18px;
+    padding: 25px;
+    min-height: 285px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform .2s, box-shadow .2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 25px color-mix(in srgb, var(--c) 25%, transparent);
+}
+
+.card.worm { --c: var(--green); }
+.card.trojan { --c: var(--purple); }
+
+.card-icon {
+    display: grid;
+    place-items: center;
+    width: 75px;
+    height: 75px;
+    border-radius: 20px;
+    color: var(--c);
+    background: color-mix(in srgb, var(--c) 15%, transparent);
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.card h2 { margin: 5px 0; }
+
+.card p {
+    font-size: 14px;
+    flex: 1;
+}
+
+.primary {
+    width: 100%;
+    max-width: 230px;
+    padding: 12px;
+    border: 0;
+    border-radius: 10px;
+    color: #061326;
+    background: var(--c);
+    font-weight: bold;
+}
+
+.primary:hover { filter: brightness(1.15); }
+
+.hidden { display: none !important; }
+
+.back {
+    color: white;
+    background: #0b2945;
+    border: 1px solid #285477;
+    padding: 10px 14px;
+    border-radius: 9px;
+}
+
+.sim-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.sim-header h2 { margin: 0 0 5px; }
+
+.subtitle {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(270px, .8fr);
+    gap: 18px;
+}
+
+.panel {
+    background: linear-gradient(145deg, #0b2038, #071629);
+    border: 1px solid #19416a;
+    border-radius: 15px;
+    padding: 17px;
+    min-width: 0;
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.panel-heading h3 {
+    font-size: 15px;
+    margin: 0;
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.computer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.computer {
+    position: relative;
+    min-height: 105px;
+    border: 1px solid #19446b;
+    border-radius: 11px;
+    background: linear-gradient(145deg, #0b2946, #08182c);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    overflow: hidden;
+}
+
+.pc-icon {
+    width: 47px;
+    height: 38px;
+    color: var(--blue);
+    z-index: 1;
+}
+
+.pc-label {
+    color: #c2d9f0;
+    font-size: 12px;
+    z-index: 1;
+}
+
+.computer.infected {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 13%, #071629);
+}
+
+.computer.infected .pc-icon {
+    color: var(--accent);
+    filter: drop-shadow(0 0 8px var(--accent));
+    animation: pulse .8s infinite alternate;
+}
+
+.computer.infected::after {
+    content: "";
+    position: absolute;
+    width: 55px;
+    height: 55px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    animation: ripple 1.5s infinite;
+}
+
+.computer.empty {
+    opacity: .12;
+    border-style: dashed;
+}
+
+@keyframes pulse {
+    to { transform: scale(1.12); }
+}
+
+@keyframes ripple {
+    to { transform: scale(1.8); opacity: 0; }
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 15px;
+}
+
+.controls button {
+    flex: 1;
+    min-width: 100px;
+    padding: 11px;
+    border-radius: 9px;
+    border: 1px solid #285477;
+    background: #0b2945;
+    color: white;
+    font-weight: bold;
+}
+
+.controls .start {
+    background: var(--accent);
+    color: #061326;
+    border: 0;
+}
+
+.controls button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.sidebar {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+}
+
+.status {
+    font-size: 13px;
+    color: #b9cfe4;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 14px 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.metric strong { color: white; }
+
+.progress {
+    height: 9px;
+    background: #193653;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width .35s;
+}
+
+.details {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #a9c0da;
+}
+
+.details strong { color: white; }
+
+.log {
+    max-height: 180px;
+    overflow-y: auto;
+    display: grid;
+    gap: 9px;
+}
+
+.log-entry {
+    font-size: 12px;
+    color: #a9c5df;
+    overflow-wrap: anywhere;
+}
+
+.log-entry b { color: var(--accent); }
+
+footer {
+    text-align: center;
+    color: #6988a8;
+    font-size: 12px;
+    margin-top: 30px;
+}
+
+@media(max-width: 850px) {
+    .cards { grid-template-columns: 1fr; }
+    .card { min-height: 235px; }
+    .layout { grid-template-columns: 1fr; }
+}
+
+@media(max-width: 500px) {
+    .container { padding: 15px 10px; }
+    .badge { display: none; }
+    .computer-grid { gap: 5px; }
+    .computer { min-height: 77px; }
+    .pc-icon { width: 34px; height: 29px; }
+    .pc-label { font-size: 10px; }
+    .panel { padding: 10px; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+    <div class="brand">⬡ CyberLab / Malware Simulator</div>
+    <div class="badge">● EDUCATIONAL MODE · SAFE SIMULATION</div>
+</header>
+
+<!-- HOME PAGE -->
+<main id="homePage">
+    <section class="hero">
+        <div class="eyebrow">Interactive cybersecurity lab</div>
+        <h1>Explore how malware behaves.</h1>
+        <p>
+            Choose a simulation to see how different malware types
+            behave across a group of fictional computers.
+        </p>
+        <div class="safe">
+            ● Safe simulation — no real files, devices, or networks are accessed.
+        </div>
+    </section>
+
+    <section class="cards">
+        <article class="card">
+            <div class="card-icon">✹</div>
+            <h2>Virus</h2>
+            <p>
+                Simulates a threat that attaches to files and may
+                spread when an infected file is used.
+            </p>
+            <button class="primary" onclick="openSimulation('virus')">
+                Simulate Virus →
+            </button>
+        </article>
+
+        <article class="card worm">
+            <div class="card-icon">〰</div>
+            <h2>Worm</h2>
+            <p>
+                Simulates self-replication from one fictional
+                computer to other computers in the grid.
+            </p>
+            <button class="primary" onclick="openSimulation('worm')">
+                Simulate Worm →
+            </button>
+        </article>
+
+        <article class="card trojan">
+            <div class="card-icon">♞</div>
+            <h2>Trojan</h2>
+            <p>
+                Demonstrates deceptive software behavior on a single
+                fictional computer without self-replication.
+            </p>
+            <button class="primary" onclick="openSimulation('trojan')">
+                Simulate Trojan →
+            </button>
+        </article>
+    </section>
+
+    <footer>GMIU · Cybersecurity Activity · Interactive Demo</footer>
+</main>
+
+<!-- SIMULATION PAGE -->
+<main id="simulationPage" class="hidden">
+    <div class="sim-header">
+        <button class="back" onclick="goHome()">← Home</button>
+        <div>
+            <h2 id="simulationTitle">Virus Simulation</h2>
+            <div class="subtitle" id="simulationSubtitle">
+                Safe, fictional behavior simulation
+            </div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <section class="panel">
+            <div class="panel-heading">
+                <h3>Computer Network</h3>
+                <span class="muted">4 × 4 grid · 12 computers</span>
+            </div>
+
+            <div class="computer-grid" id="computerGrid"></div>
+
+            <div class="controls">
+                <button class="start" id="startButton"
+                        onclick="startAnimation()">▶ Start Animation</button>
+                <button onclick="nextStep()">＋ Next Step</button>
+                <button onclick="resetSimulation()">↺ Reset</button>
+            </div>
+
+            <p class="muted">
+                All computers are fictional tiles. No real system is accessed or changed.
+            </p>
+        </section>
+
+        <aside class="sidebar">
+            <section class="panel">
+                <div class="panel-heading">
+                    <h3>Simulation Status</h3>
+                    <span class="muted" id="stateLabel">Ready</span>
+                </div>
+
+                <div class="status" id="statusText">● Ready to start</div>
+
+                <div class="metric">
+                    <span>Affected computers</span>
+                    <strong id="countLabel">0 / 12</strong>
+                </div>
+
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="metric">
+                    <span>Progress</span>
+                    <strong id="percentLabel">0%</strong>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <h3 id="detailsHeading">Virus Details</h3>
+                </div>
+                <div class="details" id="detailsText"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <h3>Activity Log</h3>
+                    <span class="muted">Local demo</span>
+                </div>
+                <div class="log" id="activityLog">
+                    <div class="log-entry">Waiting for simulation to begin.</div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer>Malware Simulator · GMIU · Educational use only</footer>
+</main>
+</div>
+
+<script>
+const malware = {
+    virus: {
+        title: "Virus Simulation",
+        color: "#ff4d62",
+        subtitle: "File attachment behavior · simulated only",
+        details: `
+            <strong>Type:</strong> File-infecting virus<br>
+            <strong>Behavior:</strong> Attaches to a host file and may spread when that file is used.<br>
+            <strong>Simulation:</strong> Multiple computer tiles turn red in sequence. No actual files are modified.
+        `,
+        order: [0, 2, 5, 7, 9, 11, 1, 4, 6, 8, 10, 3]
+    },
+
+    worm: {
+        title: "Worm Simulation",
+        color: "#00d49a",
+        subtitle: "Self-replication behavior · simulated only",
+        details: `
+            <strong>Type:</strong> Worm<br>
+            <strong>Behavior:</strong> Can self-replicate and spread between systems.<br>
+            <strong>Simulation:</strong> A wave moves through fictional computers. No network connections are made.
+        `,
+        order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    },
+
+    trojan: {
+        title: "Trojan Simulation",
+        color: "#9b62ff",
+        subtitle: "Deceptive application behavior · simulated only",
+        details: `
+            <strong>Type:</strong> Trojan horse<br>
+            <strong>Behavior:</strong> Disguises itself as legitimate software. It does not self-replicate.<br>
+            <strong>Simulation:</strong> Only one fictional computer is marked as affected, representing the device where the Trojan was run. No software is installed.
+        `,
+        order: [5]
+    }
+};
+
+const computerSVG = `
+<svg class="pc-icon" viewBox="0 0 64 54" fill="none" aria-hidden="true">
+    <rect x="7" y="5" width="50" height="34" rx="3"
+          stroke="currentColor" stroke-width="4"/>
+    <path d="M25 47h14M32 39v8" stroke="currentColor"
+          stroke-width="4" stroke-linecap="round"/>
+    <path d="M13 11h38v22H13z" fill="currentColor" opacity=".13"/>
+</svg>`;
+
+let currentType = "virus";
+let affected = new Set();
+let timer = null;
+
+function openSimulation(type) {
+    currentType = type;
+
+    document.getElementById("homePage").classList.add("hidden");
+    document.getElementById("simulationPage").classList.remove("hidden");
+
+    const info = malware[type];
+
+    document.documentElement.style.setProperty("--accent", info.color);
+    document.getElementById("simulationTitle").textContent = info.title;
+    document.getElementById("simulationSubtitle").textContent = info.subtitle;
+    document.getElementById("detailsHeading").textContent =
+        type[0].toUpperCase() + type.slice(1) + " Details";
+    document.getElementById("detailsText").innerHTML = info.details;
+
+    resetSimulation();
+    window.scrollTo(0, 0);
+}
+
+function goHome() {
+    stopAnimation();
+    document.getElementById("simulationPage").classList.add("hidden");
+    document.getElementById("homePage").classList.remove("hidden");
+    window.scrollTo(0, 0);
+}
+
+function drawComputers() {
+    const grid = document.getElementById("computerGrid");
+    grid.innerHTML = "";
+
+    // 4 × 4 layout: 12 fictional computers and 4 empty slots.
+    for (let i = 0; i < 16; i++) {
+        const tile = document.createElement("div");
+
+        if (i >= 12) {
+            tile.className = "computer empty";
+            tile.innerHTML = "<span>Empty slot</span>";
+        } else {
+            const isAffected = affected.has(i);
+            tile.className = "computer" + (isAffected ? " infected" : "");
+
+            tile.innerHTML =
+                computerSVG +
+                `<span class="pc-label">PC-${String(i + 1).padStart(2, "0")}</span>` +
+                (isAffected
+                    ? `<span style="font-size:9px;color:var(--accent);z-index:1">` +
+                      (currentType === "trojan" ? "ALERT" : "AFFECTED") +
+                      `</span>`
+                    : "");
+        }
+
+        grid.appendChild(tile);
+    }
+
+    updateProgress();
+}
+
+function updateProgress() {
+    const percent = Math.round((affected.size / 12) * 100);
+
+    document.getElementById("countLabel").textContent =
+        affected.size + " / 12";
+    document.getElementById("percentLabel").textContent = percent + "%";
+    document.getElementById("progressBar").style.width = percent + "%";
+}
+
+function addLog(message) {
+    const log = document.getElementById("activityLog");
+    const entry = document.createElement("div");
+
+    entry.className = "log-entry";
+    entry.innerHTML =
+        `<span style="color:#7799bb">${new Date().toLocaleTimeString()}</span> ` +
+        `<b>${message}</b>`;
+
+    log.prepend(entry);
+}
+
+function nextStep() {
+    const order = malware[currentType].order;
+    const next = order.find(index => !affected.has(index));
+
+    if (next === undefined) {
+        finishSimulation();
+        return;
+    }
+
+    affected.add(next);
+    drawComputers();
+
+    let message;
+
+    if (currentType === "virus") {
+        message = `PC-${next + 1}: simulated file infection`;
+    } else if (currentType === "worm") {
+        message = `PC-${next + 1}: simulated replication`;
+    } else {
+        message = `PC-${next + 1}: simulated Trojan execution`;
+    }
+
+    addLog(message);
+
+    document.getElementById("stateLabel").textContent = "Running";
+    document.getElementById("statusText").textContent =
+        `Simulation active: ${affected.size} of 12 computers`;
+    document.getElementById("statusText").style.color =
+        malware[currentType].color;
+
+    if (affected.size === malware[currentType].order.length) {
+        finishSimulation();
+    }
+}
+
+function startAnimation() {
+    if (timer || affected.size === malware[currentType].order.length) return;
+
+    document.getElementById("startButton").disabled = true;
+    document.getElementById("statusText").textContent = "Animation running...";
+    document.getElementById("stateLabel").textContent = "Running";
+
+    timer = setInterval(() => {
+        nextStep();
+
+        if (affected.size === malware[currentType].order.length) {
+            stopAnimation();
+        }
+    }, 750);
+}
+
+function stopAnimation() {
+    if (timer) {
+        clearInterval(timer);
+        timer = null;
+    }
+
+    const button = document.getElementById("startButton");
+    if (button) {
+        button.disabled =
+            affected.size === malware[currentType].order.length;
+    }
+}
+
+function finishSimulation() {
+    stopAnimation();
+
+    document.getElementById("stateLabel").textContent = "Complete";
+    document.getElementById("statusText").textContent =
+        currentType === "trojan"
+            ? "Single-device simulation complete"
+            : "Simulation completed safely";
+
+    document.getElementById("statusText").style.color = "#00d49a";
+    document.getElementById("startButton").disabled = true;
+
+    addLog("Simulation completed safely");
+}
+
+function resetSimulation() {
+    stopAnimation();
+    affected = new Set();
+
+    drawComputers();
+
+    document.getElementById("activityLog").innerHTML =
+        '<div class="log-entry">Waiting for simulation to begin.</div>';
+
+    document.getElementById("stateLabel").textContent = "Ready";
+    document.getElementById("statusText").textContent = "● Ready to start";
+    document.getElementById("statusText").style.color = "#b9cfe4";
+    document.getElementById("startButton").disabled = false;
+}
+</script>
+
+</body>
+</html>
